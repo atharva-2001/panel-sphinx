@@ -49,7 +49,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: 'docs/_build/html'  # replace with your build output directory
+          path: 'build/html'  # replace with your build output directory
 
   deploy:
     environment:
