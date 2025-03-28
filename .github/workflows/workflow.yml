@@ -3,9 +3,9 @@ name: Build and Deploy Docs
 on:
   push:
     branches: [ "main" ]  # or your default branch
-  pull_request:
-    branches: [ "main" ]
-  workflow_dispatch:  # allows manual triggering
+#   pull_request:
+#     branches: [ "main" ]
+#   workflow_dispatch:  # allows manual triggering
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
@@ -13,20 +13,29 @@ permissions:
   pages: write
   id-token: write
 
-# Allow only one concurrent deployment
-concurrency:
-  group: "pages"
-  cancel-in-progress: true
+# # Allow only one concurrent deployment
+# concurrency:
+#   group: "pages"
+#   cancel-in-progress: true
 
 jobs:
   build:
+    # strategy:
+    #   fail-fast: false
     runs-on: ubuntu-latest
     steps:
+      - run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          
       - uses: actions/checkout@v4
 
       - name: Download Lock File
         run: wget -q https://raw.githubusercontent.com/atharva-2001/tardis/refs/heads/logger_widget_panel/conda-linux-64.lock
         shell: bash
+      
       
       - uses: mamba-org/setup-micromamba@v1
         with:
@@ -41,7 +50,13 @@ jobs:
       - name: Build documentation
         shell: micromamba-shell {0}
         run: |
-          sphinx-build -M html source build
+          # Create required directories first
+          mkdir -p source/_static build/html
+          
+          # Simplify the build process - use a single command
+          sphinx-build -M html source build -v -j 1 -d build/doctrees
+          
+        timeout-minutes: 30
           
       - name: Setup Pages
         uses: actions/configure-pages@v4
